@@ -18,7 +18,17 @@ class Comment extends \app\models\Comment
 
   public function extraFields()
   {
-    return ['created_at', 'updated_at'];
+    return ['post'];
+  }
+
+  /**
+   * Gets query for Resource Post.
+   *
+   * @return \yii\db\ActiveQuery
+   */
+  public function getPost()
+  {
+      return $this->hasOne(\app\resource\Post::clas, ['id' => 'post_id']);
   }
 
 }
