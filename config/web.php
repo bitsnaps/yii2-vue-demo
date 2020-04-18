@@ -55,8 +55,13 @@ $config = [
             // 'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
-              ['class' => UrlRule::class, 'controller' => ['post','comment'], 'pluralize' => false]
-              // ['class' => UrlRule::class, 'controller' => ['p' => 'post'], 'pluralize' => false]
+              ['class' => UrlRule::class, 'controller' => ['post','comment'], 'pluralize' => false],
+              // ['class' => UrlRule::class, 'controller' => ['p' => 'post'], 'pluralize' => false],
+              [
+                // 'pattern' => 'posts/<postId:\d+>/comments', // because here I have: 'pluralize' => false
+                'pattern' => 'post/<postId:\d+>/comment',
+                'route' => 'comment/index'
+              ]
             ],
         ],
     ],
