@@ -55,7 +55,7 @@ $config = [
             // 'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
-              ['class' => UrlRule::class, 'controller' => 'post', 'pluralize' => false]
+              ['class' => UrlRule::class, 'controller' => ['post','comment'], 'pluralize' => false]
               // ['class' => UrlRule::class, 'controller' => ['p' => 'post'], 'pluralize' => false]
             ],
         ],
