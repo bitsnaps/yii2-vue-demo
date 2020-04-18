@@ -2,7 +2,7 @@
 
 namespace app\controllers;
 
-use app\models\Post;
+use app\resource\Post;
 use yii\rest\ActiveController;
 
 /**
