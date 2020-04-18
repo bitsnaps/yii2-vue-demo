@@ -1,6 +1,7 @@
 <?php
 
 use yii\web\JsonParser;
+use yii\rest\UrlRule;
 
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
@@ -51,8 +52,11 @@ $config = [
         'db' => $db,
         'urlManager' => [
             'enablePrettyUrl' => true,
+            // 'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
+              ['class' => UrlRule::class, 'controller' => 'post', 'pluralize' => false]
+              // ['class' => UrlRule::class, 'controller' => ['p' => 'post'], 'pluralize' => false]
             ],
         ],
     ],

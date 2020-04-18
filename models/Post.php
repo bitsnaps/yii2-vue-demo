@@ -21,6 +21,12 @@ use yii\behaviors\TimestampBehavior;
  */
 class Post extends \yii\db\ActiveRecord
 {
+
+  public function fields()
+  {
+    return ['id', 'title', 'body'];
+  }
+
     /**
      * {@inheritdoc}
      */
@@ -65,9 +71,9 @@ class Post extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
-              TimestampBehavior::className(),
+              TimestampBehavior::class,
               [
-                'class' => BlameableBehavior::className(),
+                'class' => BlameableBehavior::class,
                 'updatedByAttribute' => false
               ]
         ];
