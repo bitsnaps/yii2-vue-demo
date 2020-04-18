@@ -16,4 +16,9 @@ class Post extends \app\models\Post
     return ['id', 'title', 'body'];
   }
 
+  public function extraFields()
+  {
+    return ['created_at', 'updated_at'];
+  }
+
 }

@@ -13,6 +13,7 @@ use yii\rest\ActiveController;
 */
 class PostController extends ActiveController //\yii\web\Controller
 {
+    // by default ActiveController respond with JSON & XML formats
     /* Yii2 by default doesn't parse JSON body (add JsonParser to config/web.php[component\request])*/
     public $modelClass = Post::class;
 
