@@ -1,5 +1,8 @@
 <?php
 
+use yii\web\JsonParser;
+use yii\rest\UrlRule;
+
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
@@ -15,6 +18,10 @@ $config = [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => '67SQG76DSGC086DSYH086SDT7GSD0DST0',
+            // Tell Yii2 to parse json request
+            'parsers' => [
+              'application/json' => JsonParser::class
+            ]
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -43,14 +50,20 @@ $config = [
             ],
         ],
         'db' => $db,
-        /*
         'urlManager' => [
             'enablePrettyUrl' => true,
+            // 'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
+              ['class' => UrlRule::class, 'controller' => ['post','comment'], 'pluralize' => false],
+              // ['class' => UrlRule::class, 'controller' => ['p' => 'post'], 'pluralize' => false],
+              [
+                // 'pattern' => 'posts/<postId:\d+>/comments', // because here I have: 'pluralize' => false
+                'pattern' => 'post/<postId:\d+>/comment',
+                'route' => 'comment/index'
+              ]
             ],
         ],
-        */
     ],
     'params' => $params,
 ];

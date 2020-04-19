@@ -2,38 +2,99 @@
 
 namespace app\models;
 
-class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
+use yii\web\IdentityInterface;
+use yii\base\NotSupportedException;
+
+/**
+ * This is the model class for table "{{%user}}".
+ *
+ * @property int $id
+ * @property string $username
+ * @property string $password
+ * @property string|null $email
+ * @property int $status
+ * @property string $auth_key
+ * @property string $access_token
+ * @property string password_reset_token
+ *
+ * @property Comment[] $comments
+ * @property Post[] $posts
+ */
+class User extends \yii\db\ActiveRecord implements IdentityInterface
 {
-    public $id;
-    public $username;
-    public $password;
-    public $authKey;
-    public $accessToken;
 
-    private static $users = [
-        '100' => [
-            'id' => '100',
-            'username' => 'admin',
-            'password' => 'admin',
-            'authKey' => 'test100key',
-            'accessToken' => '100-token',
-        ],
-        '101' => [
-            'id' => '101',
-            'username' => 'demo',
-            'password' => 'demo',
-            'authKey' => 'test101key',
-            'accessToken' => '101-token',
-        ],
-    ];
+    const STATUS_DELETED = 0;
+    const STATUS_INACTIVE = 9;
+    const STATUS_ACTIVE = 10;
 
+    /**
+     * {@inheritdoc}
+     */
+    public static function tableName()
+    {
+        return '{{%user}}';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function rules()
+    {
+        return [
+            [['username', 'password', 'auth_key', 'access_token'], 'required'],
+            [['status'], 'integer'],
+            [['username'], 'string', 'max' => 50],
+            [['password', 'auth_key', 'access_token'], 'string', 'max' => 250],
+            [['email'], 'string', 'max' => 255],
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'username' => 'Username',
+            'password' => 'Password',
+            'email' => 'Email',
+            'status' => 'Status',
+            'auth_key' => 'Auth Key',
+            'access_token' => 'Access Token',
+        ];
+    }
+
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            if ($this->isNewRecord) {
+                $this->generateAuthKey();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public function generateAuthKey()
+    {
+      $this->auth_key = \Yii::$app->security->generateRandomString();
+    }
+
+    /**
+    * Generate Access Token
+    */
+    public function generateAccessToken()
+    {
+      $this->access_token = \Yii::$app->security->generateRandomString();
+    }
 
     /**
      * {@inheritdoc}
      */
     public static function findIdentity($id)
     {
-        return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+        return static::findOne($id);
     }
 
     /**
@@ -41,13 +102,7 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        foreach (self::$users as $user) {
-            if ($user['accessToken'] === $token) {
-                return new static($user);
-            }
-        }
-
-        return null;
+        return static::findOne(['access_token' => $token, 'status' => self::STATUS_ACTIVE]);
     }
 
     /**
@@ -58,12 +113,10 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      */
     public static function findByUsername($username)
     {
-        foreach (self::$users as $user) {
-            if (strcasecmp($user['username'], $username) === 0) {
-                return new static($user);
-            }
+        $user = static::findOne(['username' => $username]);
+        if ($user){
+            return $user;
         }
-
         return null;
     }
 
@@ -80,7 +133,7 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      */
     public function getAuthKey()
     {
-        return $this->authKey;
+        return $this->auth_key;
     }
 
     /**
@@ -88,7 +141,17 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      */
     public function validateAuthKey($authKey)
     {
-        return $this->authKey === $authKey;
+        return $this->getAuthKey() === $authKey;
+    }
+
+    /**
+     * Set password
+     *
+     * @param string $password password to changed
+     */
+    public function setPassword($password)
+    {
+        $this->password = \Yii::$app->security->generatePasswordHash($password);
     }
 
     /**
@@ -99,6 +162,51 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      */
     public function validatePassword($password)
     {
-        return $this->password === $password;
+        return \Yii::$app->security->validatePassword($password, $this->password);
     }
+
+    /**
+     * Gets query for [[Comments]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getComments()
+    {
+        return $this->hasMany(Comment::className(), ['created_by' => 'id']);
+    }
+
+    /**
+     * Gets query for [[Posts]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getPosts()
+    {
+        return $this->hasMany(Post::className(), ['created_by' => 'id']);
+    }
+
+    public function setStatus($status_id)
+    {
+      switch ($status_id) {
+        case User::STATUS_ACTIVE:
+          $this->status = User::STATUS_ACTIVE;
+          break;
+        case User::STATUS_INACTIVE:
+          $this->status = User::STATUS_INACTIVE;
+          break;
+        case User::STATUS_DELETED:
+          $this->status = User::STATUS_DELETED;
+          break;
+
+        default:
+          throw new NotSupportedException('Status not suppored.');
+          break;
+      }
+    }
+
+    public function getStatus()
+    {
+      return $this->status;
+    }
+
 }
