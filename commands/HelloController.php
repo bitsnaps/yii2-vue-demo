@@ -9,7 +9,6 @@ namespace app\commands;
 
 use yii\console\Controller;
 use yii\console\ExitCode;
-use app\models\Post;
 
 /**
  * This command echoes the first argument that you have entered.
@@ -32,33 +31,4 @@ class HelloController extends Controller
 
         return ExitCode::OK;
     }
-
-    public function actionCreatePost()
-    {
-        $post = $this->createPost('Title 2');
-        if ($post->save()){
-          echo 'Post saved';
-          return ExitCode::OK;
-        }
-        return ExitCode::UNSPECIFIED_ERROR;
-    }
-
-    public function actionCreatePosts()
-    {
-      for ($i=3; $i < 15; $i++) {
-        if (!$this->createPost("Title $i")->save()){
-          return ExitCode::UNSPECIFIED_ERROR;
-        }
-      }
-      return ExitCode::OK;
-    }
-
-    private function createPost($title)
-    {
-      $post = new Post();
-      $post->title = $title;
-      $post->body = "body of $title";
-      return $post;
-    }
-
 }
