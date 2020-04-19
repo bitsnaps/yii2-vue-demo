@@ -3,6 +3,7 @@
 namespace app\models;
 
 use yii\web\IdentityInterface;
+use yii\base\NotSupportedException;
 
 /**
  * This is the model class for table "{{%user}}".
@@ -14,17 +15,17 @@ use yii\web\IdentityInterface;
  * @property int $status
  * @property string $auth_key
  * @property string $access_token
+ * @property string password_reset_token
  *
  * @property Comment[] $comments
  * @property Post[] $posts
  */
 class User extends \yii\db\ActiveRecord implements IdentityInterface
 {
-    // public $id;
-    // public $username;
-    // public $password;
-    // public $authKey;
-    // public $accessToken;
+
+    const STATUS_DELETED = 0;
+    const STATUS_INACTIVE = 9;
+    const STATUS_ACTIVE = 10;
 
     /**
      * {@inheritdoc}
@@ -68,12 +69,24 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
     {
         if (parent::beforeSave($insert)) {
             if ($this->isNewRecord) {
-                $this->auth_key = \Yii::$app->security->generateRandomString();
-                // $this->auth_key = \Yii::$app->security->generateRandomString();
+                $this->generateAuthKey();
             }
             return true;
         }
         return false;
+    }
+
+    public function generateAuthKey()
+    {
+      $this->auth_key = \Yii::$app->security->generateRandomString();
+    }
+
+    /**
+    * Generate Access Token
+    */
+    public function generateAccessToken()
+    {
+      $this->access_token = \Yii::$app->security->generateRandomString();
     }
 
     /**
@@ -81,7 +94,6 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
      */
     public static function findIdentity($id)
     {
-        // return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
         return static::findOne($id);
     }
 
@@ -90,13 +102,7 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        /*foreach (self::$users as $user) {
-            if ($user['accessToken'] === $token) {
-                return new static($user);
-            }
-        }
-        return null;*/
-        return static::findOne(['access_token' => $token]);
+        return static::findOne(['access_token' => $token, 'status' => self::STATUS_ACTIVE]);
     }
 
     /**
@@ -107,17 +113,10 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
      */
     public static function findByUsername($username)
     {
-        // foreach (self::$users as $user) {
-        //     if (strcasecmp($user['username'], $username) === 0) {
-        //         return new static($user);
-        //     }
-        // }
-
         $user = static::findOne(['username' => $username]);
         if ($user){
             return $user;
         }
-
         return null;
     }
 
@@ -134,7 +133,6 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
      */
     public function getAuthKey()
     {
-      // return $this->auth_key;
         return $this->auth_key;
     }
 
@@ -164,7 +162,6 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
      */
     public function validatePassword($password)
     {
-        // return $this->password === $password;
         return \Yii::$app->security->validatePassword($password, $this->password);
     }
 
@@ -186,6 +183,30 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
     public function getPosts()
     {
         return $this->hasMany(Post::className(), ['created_by' => 'id']);
+    }
+
+    public function setStatus($status_id)
+    {
+      switch ($status_id) {
+        case User::STATUS_ACTIVE:
+          $this->status = User::STATUS_ACTIVE;
+          break;
+        case User::STATUS_INACTIVE:
+          $this->status = User::STATUS_INACTIVE;
+          break;
+        case User::STATUS_DELETED:
+          $this->status = User::STATUS_DELETED;
+          break;
+
+        default:
+          throw new NotSupportedException('Status not suppored.');
+          break;
+      }
+    }
+
+    public function getStatus()
+    {
+      return $this->status;
     }
 
 }

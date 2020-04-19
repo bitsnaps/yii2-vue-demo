@@ -18,7 +18,7 @@ class Post extends \app\models\Post
 
   public function extraFields()
   {
-    return ['comments', 'created_at', 'updated_at'];
+    return ['comments', 'created_at', 'updated_at', 'createdBy'];
   }
 
   /**
@@ -31,5 +31,14 @@ class Post extends \app\models\Post
       return $this->hasMany(\app\resource\Comment::class, ['post_id' => 'id']);
   }
 
+  /**
+   * Gets query for Resource User CreatedBy.
+   *
+   * @return \yii\db\ActiveQuery
+   */
+  public function getCreatedBy()
+  {
+      return $this->hasOne(\app\resource\User::class, ['id' => 'created_by']);
+  }
 
 }

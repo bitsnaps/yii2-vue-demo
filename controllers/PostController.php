@@ -3,7 +3,8 @@
 namespace app\controllers;
 
 use app\resource\Post;
-use yii\rest\ActiveController;
+// use yii\rest\ActiveController;
+
 
 /**
 * class ActiveController

@@ -3,8 +3,9 @@
 namespace app\controllers;
 
 use app\resource\Comment;
-use yii\rest\ActiveController;
+// use yii\rest\ActiveController;
 use yii\data\ActiveDataProvider;
+use yii\filters\auth\HttpBearerAuth;
 
 /**
 * class ActiveController

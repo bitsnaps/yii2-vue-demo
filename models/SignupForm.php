@@ -46,25 +46,77 @@ class SignupForm extends Model
      */
      public function signup()
      {
-       $user = new User();
+
        if ($this->validate()) {
-           $user->username = $this->username;
-           // $user->email = $this->email;
-           $user->setPassword($this->password);
-           // $user->generateAuthKey(); // this is done in User->beforeSave()
-           $user->save(false);
+         $user = new User();
+         $user->username = $this->username;
+         // $user->email = $this->email;
+         $user->setPassword($this->password);
+         // $user->generateAuthKey(); // this is done in User->beforeSave() instead
+         $user->generateAccessToken();
+         $user->save(false);
+         // $this->sendEmail($user);
 
-           // the following three lines were added:
-           // $auth = \Yii::$app->authManager;
-           // $authorRole = $auth->getRole('author');
-           // $auth->assign($authorRole, $user->getId());
+         // the following three lines were added:
+         // $auth = \Yii::$app->authManager;
+         // $authorRole = $auth->getRole('author');
+         // $auth->assign($authorRole, $user->getId());
 
-           return $user;
-       }/* else {
-         var_dump($user);
-         die('');
-       }*/
+         return $user;
+       }
        return null;
+     }
+
+     /**
+      * Sends an email with a link, for resetting the password.
+      *
+      * @return boolean whether the email was send
+      */
+     public function sendEmail()
+     {
+         /* @var $user User */
+         $class = Yii::$app->getUser()->identityClass ? : 'app\models\User';
+         $user = $class::findOne([
+             'status' => User::STATUS_ACTIVE,
+             'email' => $this->email,
+         ]);
+
+         if ($user) {
+             if (!$this->isPasswordResetTokenValid($user->password_reset_token)) {
+                 $user->password_reset_token = Yii::$app->security->generateRandomString() . '_' . time();
+             }
+
+             if ($user->save()) {
+                 return Yii::$app->mailer->compose([
+                   'html' => 'passwordResetToken-html',
+                   'text' => 'passwordResetToken-text'
+                 ], [
+                   'user' => $user
+                 ])->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name . ' robot'])
+                   ->setTo($this->email)
+                   ->setSubject('Password reset for ' . Yii::$app->name)
+                   ->send();
+             }
+         }
+
+         return false;
+     }
+
+     /**
+      * Finds out if password reset token is valid
+      *
+      * @param string $token password reset token
+      * @return boolean
+      */
+     public static function isPasswordResetTokenValid($token)
+     {
+         if (empty($token)) {
+             return false;
+         }
+         $expire = Yii::$app->params['user.passwordResetTokenExpire']?:(3600*24*30);
+         $parts = explode('_', $token);
+         $timestamp = (int) end($parts);
+         return $timestamp + $expire >= time();
      }
 
 }
