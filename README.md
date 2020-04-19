@@ -7,10 +7,6 @@
     <p>Using <a href="https://github.com/antkaz/yii2-vue">antkaz's extension</a> VueJS in Yii2, you don't need to use npm in this demo.</p>
 </p>
 
-<p>
-This branch is a RestFull API for create,update,delete Posts and Comments, with authorization using Access Token.
-</p>
-
 Yii 2 Basic Project Template is a skeleton [Yii 2](http://www.yiiframework.com/) application best for
 rapidly creating small projects.
 
